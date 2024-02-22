@@ -1,0 +1,57 @@
+/* ASC Tema2 Optimizari */
+ ________________________________
+/ DESCRIERE GENERALA A SURSELOR /
+''''''''''''''''''''''''''''''''
+
+/* BLAS SOLUTION */
+
+    Pentru solutia ce se foloseste de biblioteca cblas am modificat in Makefile
+pentru a adauga calea specificata catre biblioteca si flagurile de compilare
+corespunzatoare acesteia, pentru a putea utiliza functiile oferite.
+
+    In cadrul implementarii am apelat functi din blas petru 
+     > realizarea operatilor de inmultire a 2 matrici: 
+        generala, utilizata pentru Bt x Bt
+        speciica pentru inmultirea cu o matrice triunghiulara pentru A x B si AB x At
+     > realizarea copierilor unor matrice, deoarece unele din fucntiile utilizate
+    fac overrite pe una din matricele input pentru stocarea rezultatului 
+    (cblas_dtrmm si cblas_dgemm)
+     > realizarea adunarii intre cele 2 matrici finale, realizata cu o functie de
+    calcul pentru vectori, deoarece matricele sunt memorate sub forma vectoriala
+
+    In cadrul implementarii rezultatele partiale sunt retinute in matricea auxiliara
+ABAt, unde se stocheaza pe rand: B, AB si ABAt; si in matricea R unde se stocheaza
+BtBt si ulterior rezultatul final.
+
+/* NEOPT SOLUTION */
+
+    Pentru solutia neoptimizata am urmarit calcularea matricelor componente astfel:
+Mai intai AB, urmata de calculul pentru ABAt si BtBt folosing parcurgerea cu 3 foruri.
+Solutia aloca si elibereaza niste matrici auxiliare folosit in cadrul calcului partial
+si final. Schema ierarhiei forurilor este identica cu schema ierarhiei din solutia optimizata,
+se asigura aceasi complexitate.
+
+    Pentru inmultirea matricelor presupune adaugare la fiecare element din matricea
+finala a produsului corespunzator din parcurgere. Deoarece matricea A este triunghiulara
+superior, pentru calculele ce se folosesc de elementele sale, parcurgere forului
+porneste de la elementul de pe diagonala principala, evitand astfel realizarea
+unor inmultiri si adunari cu 0.
+
+    Pentru calculele unde se folosesc matrici transpuse, ordinea indicilor este
+inversata pentru a extrage elementul corespunzator, fara a fi nevoie de transpunerea
+propiuzisa a matricei. Se evita astfel niste calcule inutile pentru obtinerea
+matricilor transpuse.
+
+/* OPT SOLUTION */
+
+    Pentru implementarea solutiei optimizate am pornit de la codul solutiei neopt
+si am urmarit introducerea unor solutii de optimizare studiate la laborator. 
+Modificarile aduse pentru imbunatatirea timpilor de executie sunt urmatoarele:
+    
+    > schimbarea ordinii forurilor pentru inmultirea AB, din i-j-k in i-k-j
+    > idetificarea unor constante si retinerea lor pentru a micsora operatile de
+acces la memorie
+    > utilizarea indicarii registrelor pentru mentinerea variabilei la indemana
+    > pointeri ce sunt parcursi secvential si utilizarea lor in foruri pentru
+acces mai rapid 
+    > realizarea de loop unrolling pentru efectuarea a cate 4 operarii odata
